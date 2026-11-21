@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shakti Studio">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>Shakti Prerna AI Studio</title>
+<style>
+:root{--bg:#0b1020;--panel:#151f36;--line:#2d3b5c;--txt:#f5f7ff;--muted:#aab6d1;--gold:#f4bd52}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#26365d 0,transparent 36%),var(--bg);color:var(--txt);font:16px/1.55 system-ui,sans-serif}
+header{text-align:center;padding:28px 16px 18px}header b{font-size:35px}h1{margin:4px;font-size:clamp(25px,5vw,38px)}header p{color:var(--muted);max-width:680px;margin:auto}
+main{max-width:900px;margin:auto;padding:14px 16px 50px}.card{background:rgba(21,31,54,.96);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:15px}
+label{display:block;font-weight:650;margin:13px 0 5px}input,select,textarea{width:100%;background:#0f192d;color:var(--txt);border:1px solid #405071;border-radius:11px;padding:12px;font:inherit}textarea{min-height:90px}
+button{border:0;border-radius:11px;padding:12px 16px;font-weight:750;cursor:pointer}.primary{background:linear-gradient(100deg,#f5c45b,#ff963f);color:#261a07;width:100%;margin-top:17px}.secondary{background:#2a3a5c;color:white}
+.muted{color:var(--muted);font-size:13px}.status{padding:9px 12px;border-radius:10px;background:#101a30;border:1px solid var(--line);margin-top:10px;font-size:13px}
+.output{white-space:pre-wrap;overflow-wrap:anywhere;background:#0c1528;border:1px solid var(--line);border-radius:12px;padding:15px;min-height:130px;margin-top:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hidden{display:none}
+</style></head><body>
+<header><b>🔱</b><h1>Shakti Prerna AI Studio</h1><p>Shakti Prerna5 के लिए AI से script, visual prompts, thumbnail और SEO package बनाओ।</p></header>
+<main>
+<section class="card">
+<h2>🔥 Live Topic Research</h2><p class="muted">अपनी category चुनकर current public web signals पर आधारित topic ideas खोजो।</p><label>Research category</label><select id="trendCategory"><option>Temple mysteries in India</option><option>Hindu mythology</option><option>Lord Shiva devotional stories</option><option>Lord Krishna stories</option><option>Lord Hanuman</option><option>Indian devotional festivals</option></select><button class="primary" id="findTrends">वेब पर नए topic खोजो</button><div class="output" id="trendResult">Trend research के लिए बटन दबाओ।</div><button class="secondary" id="useTrend" style="margin-top:8px">ऊपर वाले Video Topic में डालो</button>
+</section>
+<section class="card">
+<h2>अपना वीडियो तैयार करो</h2>
+<label>Category</label><select id="category"><option>Temple Mystery</option><option>Hindu Mythology</option><option>Lord Shiva</option><option>Lord Krishna</option><option>Lord Hanuman</option><option>Bhakti Stories</option><option>Trending Mythology Topic</option></select>
+<label>Video format</label><select id="format"><option>YouTube Shorts (35–45 seconds)</option><option>YouTube Long Video (5–8 minutes)</option></select>
+<label>Language</label><select id="language"><option>Hindi</option><option>Hinglish</option><option>English</option></select>
+<label>Topic</label><input id="topic" placeholder="जैसे: लेपाक्षी मंदिर का लटका हुआ स्तंभ">
+<label>Visual style</label><select id="style"><option>Cinematic photorealistic, warm gold and teal</option><option>HD mythological oil painting</option><option>Ancient Indian epic, dramatic cinematic</option><option>Documentary realism</option></select>
+<button class="primary" id="generate">✨ AI वीडियो पैकेज बनाओ</button>
+<div class="status" id="status">Server status जाँचा जा रहा है…</div>
+<p class="muted">AI usage पर API charges लग सकते हैं। Trend Research बटन web search से current public web signals खोजने की कोशिश करता है; YouTube Studio का private data नहीं पढ़ता।</p>
+</section>
+<section class="card hidden" id="resultCard">
+<h2>तुम्हारा AI वीडियो पैकेज</h2><div class="actions"><button class="secondary" id="copy">पूरा कॉपी</button><button class="secondary" id="download">TXT डाउनलोड</button></div><div class="output" id="result"></div>
+</section>
+</main>
+<script>
+let generated="";
+let latestTrendText="";
+document.getElementById('findTrends').onclick=async()=>{
+ const b=document.getElementById('findTrends'),o=document.getElementById('trendResult');
+ b.disabled=true;b.textContent='वेब पर खोज रहा है…';o.textContent='Current public sources खोजे जा रहे हैं।';
+ try{
+  const r=await fetch('/api/trends',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category:document.getElementById('trendCategory').value})});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'Research failed');
+  latestTrendText=d.text||'';o.textContent=latestTrendText;
+ }catch(e){o.textContent='Research error: '+e.message;}
+ finally{b.disabled=false;b.textContent='वेब पर नए topic खोजो';}
+};
+document.getElementById('useTrend').onclick=()=>{
+ const match=latestTrendText.match(/(?:1[.)]|Topic:|विषय:)[ \\t]*([^\\n]+)/i);
+ if(match)document.getElementById('topic').value=match[1].replace(/^[-*# ]+/,'').trim();
+ else document.getElementById('topic').value=latestTrendText.split('\\n').find(x=>x.trim())?.trim()||'';
+ document.getElementById('topic').scrollIntoView({behavior:'smooth',block:'center'});
+};
+async function health(){try{let r=await fetch('/api/health');let d=await r.json();document.getElementById('status').textContent=d.aiConfigured?'✓ AI server connected':'⚠ Server चल रहा है, लेकिन API key configure नहीं है।';}catch(e){document.getElementById('status').textContent='Server से कनेक्शन नहीं हुआ। README के setup steps follow करो।';}}
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{})); }
+health();
+document.getElementById('generate').onclick=async()=>{
+ const btn=document.getElementById('generate'),status=document.getElementById('status');
+ const topic=document.getElementById('topic').value.trim();
+ if(!topic){status.textContent='पहले अपना video topic लिखो।';return;}
+ btn.disabled=true;btn.textContent='AI पैकेज बना रहा है…';status.textContent='कृपया प्रतीक्षा करें।';
+ try{
+  const response=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+   category:document.getElementById('category').value,
+   format:document.getElementById('format').value,
+   language:document.getElementById('language').value,
+   topic,style:document.getElementById('style').value,output:'complete package'
+  })});
+  const data=await response.json();if(!response.ok)throw new Error(data.error||'Request failed');
+  generated=data.text||'';document.getElementById('result').textContent=generated;
+  document.getElementById('resultCard').classList.remove('hidden');status.textContent='✓ पैकेज तैयार है।';document.getElementById('resultCard').scrollIntoView({behavior:'smooth'});
+ }catch(e){status.textContent='समस्या: '+e.message;}
+ finally{btn.disabled=false;btn.textContent='✨ AI वीडियो पैकेज बनाओ';}
+};
+document.getElementById('copy').onclick=async()=>{await navigator.clipboard.writeText(generated);document.getElementById('copy').textContent='कॉपी हो गया ✓';};
+document.getElementById('download').onclick=()=>{const a=document.createElement('a'),u=URL.createObjectURL(new Blob([generated],{type:'text/plain;charset=utf-8'}));a.href=u;a.download='Shakti-Prerna-AI-Package.txt';a.click();URL.revokeObjectURL(u);};
+</script></body></html>
